@@ -51,13 +51,13 @@ public unsafe class Utils
     internal static bool IsInFrontOfCamera(DalamudGameObject obj, float maxAngle)
     {
         // This is still relying on camera orientation but the cone is from the player's position
-        if (Plugin.Client.LocalPlayer == null)
+        if (Plugin.ObjectTable.LocalPlayer == null)
             return false;
 
         var rotation = GetCameraRotation();
         var faceVec = new Vector2((float)Math.Cos(rotation), (float)Math.Sin(rotation));
 
-        var dir = obj.Position - Plugin.Client.LocalPlayer.Position;
+        var dir = obj.Position - Plugin.ObjectTable.LocalPlayer.Position;
         var dirVec = new Vector2(dir.Z, dir.X);
         var angle = Math.Acos(Vector2.Dot(dirVec, faceVec) / dirVec.Length() / faceVec.Length());
         return angle <= Math.PI * maxAngle / 360;
@@ -74,8 +74,8 @@ public unsafe class Utils
         else
         {
             // Using player's position as origin for raycast
-            if (Plugin.Client.LocalPlayer == null) return false;
-            var player = (GameObject*)Plugin.Client.LocalPlayer.Address;
+            if (Plugin.ObjectTable.LocalPlayer == null) return false;
+            var player = (GameObject*)Plugin.ObjectTable.LocalPlayer.Address;
             sourcePos = player->Position;
             sourcePos.Y += 2;
         }
