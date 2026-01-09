@@ -22,8 +22,4 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
-  </ItemGroup>
-
 </Project>
