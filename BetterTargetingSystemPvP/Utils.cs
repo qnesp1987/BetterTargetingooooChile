@@ -27,30 +27,21 @@ public unsafe class Utils
     }
     internal static float DistanceBetweenObjects(Vector3 sourcePos, Vector3 targetPos, float targetHitboxRadius = 0)
     {
-        // Might have to tinker a bit whether or not to include hitbox radius in calculation
-        // Keeping the source object hitbox radius outside of the calculation for now
         var distance = Vector3.Distance(sourcePos, targetPos);
-        //distance -= source.HitboxRadius;
         distance -= targetHitboxRadius;
         return distance;
     }
 
     internal static float GetCameraRotation()
     {
-        // Gives the camera rotation in deg between -180 and 180
         var cameraRotation = RaptureAtkModule->AtkModule.AtkArrayDataHolder.NumberArrays[24]->IntArray[3];
-
-        // Transform the [-180,180] rotation to rad with same 0 as a GameObject rotation
-        // There might be an easier way to do that, but geometry and I aren't friends
         var sign = Math.Sign(cameraRotation) == -1 ? -1 : 1;
         var rotation = (float)((Math.Abs(cameraRotation * (Math.PI / 180)) - Math.PI) * sign);
-
         return rotation;
     }
 
     internal static bool IsInFrontOfCamera(DalamudGameObject obj, float maxAngle)
     {
-        // This is still relying on camera orientation but the cone is from the player's position
         if (Plugin.ObjectTable.LocalPlayer == null)
             return false;
 
@@ -65,32 +56,33 @@ public unsafe class Utils
 
     internal static bool IsInLineOfSight(GameObject* target, bool useCamera = false)
     {
-        var sourcePos = FFXIVClientStructs.FFXIV.Common.Math.Vector3.Zero;
+        var sourcePos = System.Numerics.Vector3.Zero;
         if (useCamera)
         {
-            // Using the camera's position as origin for raycast
-            sourcePos = CameraManager.Instance()->CurrentCamera->Object.Position;
+            var camPos = CameraManager.Instance()->CurrentCamera->Object.Position;
+            sourcePos = new System.Numerics.Vector3(camPos.X, camPos.Y, camPos.Z);
         }
         else
         {
-            // Using player's position as origin for raycast
             if (Plugin.ObjectTable.LocalPlayer == null) return false;
-            var player = (GameObject*)Plugin.ObjectTable.LocalPlayer.Address;
-            sourcePos = player->Position;
+            sourcePos = Plugin.ObjectTable.LocalPlayer.Position;
             sourcePos.Y += 2;
         }
 
-        var targetPos = target->Position;
+        var targetPosNative = target->Position;
+        var targetPos = new System.Numerics.Vector3(targetPosNative.X, targetPosNative.Y, targetPosNative.Z);
         targetPos.Y += 2;
 
         var direction = targetPos - sourcePos;
-        var distance = direction.Magnitude;
+        var distance = direction.Length();
 
-        direction = direction.Normalized;
+        direction = Vector3.Normalize(direction);
 
         RaycastHit hit;
         var flags = stackalloc int[] { 0x4000, 0, 0x4000, 0 };
-        var isLoSBlocked = CSFramework.Instance()->BGCollisionModule->RaycastMaterialFilter(&hit, sourcePos, direction, distance, 1, flags);
+        
+        // Pass the address of the System.Numerics.Vector3 variables directly
+        var isLoSBlocked = CSFramework.Instance()->BGCollisionModule->RaycastMaterialFilter(&hit, &sourcePos, &direction, distance, 1, flags);
 
         return isLoSBlocked == false;
     }
@@ -98,10 +90,10 @@ public unsafe class Utils
     internal static uint[] GetEnemyListObjectIds()
     {
         var addonByName = Plugin.GameGui.GetAddonByName("_EnemyList", 1);
-        if (addonByName == IntPtr.Zero)
+        if (addonByName.Address == IntPtr.Zero)
             return Array.Empty<uint>();
 
-        var addon = (AddonEnemyList*)addonByName;
+        var addon = (AddonEnemyList*)addonByName.Address;
         var numArray = RaptureAtkModule->AtkModule.AtkArrayDataHolder.NumberArrays[21];
         var list = new List<uint>(addon->EnemyCount);
         for (var i = 0; i < addon->EnemyCount; i++)

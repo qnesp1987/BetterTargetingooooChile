@@ -1,4 +1,5 @@
 using Dalamud.Game.ClientState.Conditions;
+using ImGuiNET = Dalamud.Bindings.ImGui;
 using ImGuiNET;
 using System;
 using System.Linq;
