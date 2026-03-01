@@ -1,7 +1,6 @@
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Windowing;
-using ImGuiNET = Dalamud.Bindings.ImGui;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System;
 using System.Numerics;
 
@@ -167,12 +166,6 @@ namespace BetterTargetingSystem.Windows
             {
                 this.ModifyingKeybindBAOETK = false;
             }
-        }
-
-        private void SettingsConfig()
-        {
-            // SettingsConfig logic if needed
-            // For now simplified to match provided file minus comments if valid
         }
 
         private void UnfocusInput()
